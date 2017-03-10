@@ -6,37 +6,22 @@ const data = YAML.load('./data.yaml');
 const getFemales = _.filter(item => item.bio.gender === 'F');
 const filterTerms = _.filter(term => term.type === 'rep');
 const getFemaleReps = _.compose(_.map(_.compose(filterTerms, _.prop('terms'))), getFemales);
-const getYear = _.compose(_.join(''), _.slice(0,4));
+// getTermsArray :: [Object] -> [Object]
 const getTermsArray = _.compose(_.flatten, getFemaleReps);
-
-// getYearRange :: String -> String -> [Number]
-const getYearRange = (start, end) => {
-  const begin = getYear(start);
-  const ending = getYear(end);
-  const diff = ending - begin;
-  let ret = [+begin];
-
-  _.times(count => {
-    ret.push(+begin + (count + 1))
-  }, diff);
-
-  return ret;
-};
-
-// getAllYears :: [Object] -> [Number]
-const getAllYears = _.map(term => getYearRange(term.start, term.end));
-
+// getYear :: [String] ->
+const getYear = _.compose(_.join(''), _.slice(0,4));
+// getYearRange :: Object -> [Number]
+const getYearRange = _.compose(_.map(getYear), _.at(['start', 'end']));
 // getYearsCount :: [Object] -> Object
-const getYearsCount = _.compose(_.countBy(i => i), _.flattenDeep, getAllYears, getTermsArray)
+const getYearsCount = _.compose(
+  _.countBy(i => i),
+  _.flattenDeep, // pull numbers out of nested arrays
+  _.map(getYearRange), // Get all years
+  getTermsArray
+);
 
-const printHist = data => {
-  Object.keys(data).forEach(key => {
-    const bar = _.times(c => '#', data[key]);
-    const barString = bar.join('');
-    console.log(barString)
-
-  })
-  console.log('\n')
-}
-
-printHist(getYearsCount(data))
+// getBarAsString :: Number -> String
+const printBarAsString = _.compose(console.log, _.join(''), _.times(c => '#'));
+const printBars = _.map(printBarAsString);
+const app = _.compose(printBars, getYearsCount);
+app(data);
