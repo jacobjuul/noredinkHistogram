@@ -1,4 +1,4 @@
-import data, { printBars, countOccurencesOfFemaleYears, getYearRangeFromTerm } from './';
+import data, { printBars, countOccurencesOfFemaleYears, getYearRangeFromTerm, getRange } from './';
 import { expect } from 'chai';
 
 describe('printBars', () => {
@@ -40,3 +40,13 @@ describe('getYearRangeFromTerm', () => {
     expect(subject).to.deep.equal(expected)
   });
 });
+
+describe('getRange', () => {
+  it('should return the start and end year range, including the end year', () => {
+    const setup = [2010, 2017];
+    const expected = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017];
+    const subject = getRange(setup);
+
+    expect(subject).to.deep.equal(expected);
+  });
+})

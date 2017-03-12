@@ -27,7 +27,7 @@ const extractYearFromDate = _.compose(
 );
 
 
-const getRange = ([head, tail]) => _.concat(_.range(head, tail), +tail);
+export const getRange = ([head, tail]) => _.concat(_.range(head, tail), +tail);
 // getYearRangeFromTerm :: Object -> [Number]
 const getYearRangeFromTerm = _.compose(
   getRange, _.map(extractYearFromDate), _.at(['start', 'end'])
