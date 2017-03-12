@@ -1,36 +1,62 @@
-const YAML = require('yamljs');
-const _ = require('lodash/fp');
+import YAML from 'yamljs';
+import _ from 'lodash/fp';
 const data = YAML.load('./data.yaml');
 
-var trace = _.curry(function(tag, x) {
-      console.log(tag, x);
-      return x;
-    });
+const trace = _.curry((tag, x) => {
+  console.log(tag, x);
+  return x;
+});
+
+// addLegngth :: String -> String
+const addLengthToString = s => s.length + s;
 
 // getFemales :: Object -> Object
 const getFemales = _.filter(item => item.bio.gender === 'F');
-const filterTerms = _.filter(term => term.type === 'rep');
-const getFemaleReps = _.compose(_.map(_.compose(filterTerms, _.prop('terms'))), getFemales);
-// getTermsArray :: [Object] -> [Object]
-const getTermsArray = _.compose(_.flatten, getFemaleReps);
-// getYear :: String -> String
-const getYear = _.compose(_.join(''), _.slice(0,4));
-// getYearRange :: Object -> [Number]
-const getYearRange = _.compose(_.range(_.head, _.init), _.map(getYear), _.at(['start', 'end']));
 
-// getYearsCount :: [Object] -> Object
-const getYearsCount = _.compose(
-  _.countBy(i => i),
-  _.flattenDeep, // pull numbers out of nested arrays
-  _.map(getYearRange), // Get all years
-  getTermsArray
+// onlyGetReps :: [Object] -> [Object]
+const onlyGetReps = _.filter(term => term.type === 'rep');
+
+// takeAllTerms :: [Objects] -> [Object]
+const allFemaleTermsWhoAreReps = _.compose(
+  _.flatten , _.map(_.compose(onlyGetReps, _.prop('terms'))), getFemales
 );
 
-// addLegngth :: String -> String
-const addLength = s => s.length + s;
-// getBarAsString :: Object -> String
+// extractYearFromDate :: String -> String
+const extractYearFromDate = _.compose(
+  _.join(''), _.slice(0,4)
+);
 
-const printBars = _.compose(console.log, addLength, _.join(''), _.times(c => '#'));
-const app = _.compose(_.map(printBars), trace('after count'), getYearsCount);
 
-app(data);
+const getRange = arr => _.concat(_.range(arr[0], arr[1]), +arr[1]);
+// getYearRangeFromTerm :: Object -> [Number]
+const getYearRangeFromTerm = _.compose(
+  getRange, _.map(extractYearFromDate), _.at(['start', 'end'])
+);
+
+// countOccurencesOfYears :: [Object] -> Object
+const countOccurencesOfFemaleYears = _.compose(
+  _.countBy(i => i), //
+  _.flattenDeep, // pull numbers out of nested arrays
+  _.map(getYearRangeFromTerm), // Get all years
+  allFemaleTermsWhoAreReps //
+);
+
+// printBars :: Number -> String
+const printBars = _.compose(
+  addLengthToString, _.join(''), _.times(c => '#')
+);
+
+// app :: Object -> void
+const app = _.compose(_.join('\n'), _.map(printBars), countOccurencesOfFemaleYears);
+
+console.log(app(data));
+
+
+export {
+  countOccurencesOfFemaleYears,
+  extractYearFromDate,
+  getYearRangeFromTerm,
+  addLengthToString,
+  printBars,
+  data
+}
